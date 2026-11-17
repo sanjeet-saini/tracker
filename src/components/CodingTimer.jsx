@@ -1,22 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Pause, RotateCcw, Timer, Award } from 'lucide-react';
 
-export default function CodingTimer({ totalSeconds, setTotalSeconds, onSaveTime }) {
+export default function CodingTimer({ totalSeconds, setTotalSeconds }) {
   const [isActive, setIsActive] = useState(false);
 
+  // Saving to localStorage happens in App whenever totalSeconds changes
   useEffect(() => {
-    let interval = null;
-    if (isActive) {
-      interval = setInterval(() => {
-        setTotalSeconds(prev => {
-          const updated = prev + 1;
-          localStorage.setItem('tracker_coding_seconds', updated);
-          return updated;
-        });
-      }, 1000);
-    } else {
-      clearInterval(interval);
-    }
+    if (!isActive) return undefined;
+    const interval = setInterval(() => {
+      setTotalSeconds((prev) => prev + 1);
+    }, 1000);
     return () => clearInterval(interval);
   }, [isActive, setTotalSeconds]);
 
@@ -30,7 +23,6 @@ export default function CodingTimer({ totalSeconds, setTotalSeconds, onSaveTime 
   const handleReset = () => {
     setIsActive(false);
     setTotalSeconds(0);
-    localStorage.setItem('tracker_coding_seconds', 0);
   };
 
   const hoursLogged = (totalSeconds / 3600).toFixed(1);

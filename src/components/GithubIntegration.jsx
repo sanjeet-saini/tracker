@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { GitPullRequest, GitCommit, GitBranch, Search, ExternalLink, Github, RefreshCw } from 'lucide-react';
+import { Search, ExternalLink, Github, RefreshCw } from 'lucide-react';
+
+const DEFAULT_USER = 'sanjeet-saini';
 
 export default function GithubIntegration() {
-  const [username, setUsername] = useState(localStorage.getItem('tracker_github_user') || 'torvalds');
+  const [username, setUsername] = useState(localStorage.getItem('tracker_github_user') || DEFAULT_USER);
   const [inputVal, setInputVal] = useState(username);
   const [repos, setRepos] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -13,20 +15,21 @@ export default function GithubIntegration() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`https://api.github.com/users/${user}/repos?sort=updated&per_page=5`);
+      const res = await fetch(
+        `https://api.github.com/users/${encodeURIComponent(user.trim())}/repos?sort=updated&per_page=5`
+      );
+      if (res.status === 404) {
+        throw new Error(`GitHub user "${user}" was not found.`);
+      }
       if (!res.ok) {
-        throw new Error('GitHub user not found or rate limited.');
+        throw new Error('GitHub API limit reached. Please try again in a few minutes.');
       }
       const data = await res.json();
       setRepos(data);
-      localStorage.setItem('tracker_github_user', user);
+      localStorage.setItem('tracker_github_user', user.trim());
     } catch (err) {
-      setError(err.message || 'Failed to fetch GitHub repos');
-      // Fallback mock repos so the UI is always fully functional
-      setRepos([
-        { id: 1, name: 'linux', stargazers_count: 165000, language: 'C', html_url: 'https://github.com/torvalds/linux', description: 'Linux kernel source tree' },
-        { id: 2, name: 'subsurface', stargazers_count: 2800, language: 'C++', html_url: 'https://github.com/torvalds/subsurface', description: 'Dive log program' }
-      ]);
+      setRepos([]);
+      setError(err.message || 'Could not load GitHub repositories.');
     } finally {
       setLoading(false);
     }
@@ -83,14 +86,14 @@ export default function GithubIntegration() {
 
         {error && (
           <p className="text-xs text-amber-600 dark:text-amber-400 mb-3 bg-amber-500/10 p-2 rounded-lg">
-            ⚠️ {error} Showing cached/fallback data.
+            ⚠️ {error}
           </p>
         )}
 
         <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
           {loading && repos.length === 0 ? (
             <div className="text-center py-8 text-slate-400 text-sm">Loading repositories...</div>
-          ) : repos.length === 0 ? (
+          ) : error ? null : repos.length === 0 ? (
             <div className="text-center py-8 text-slate-400 text-sm">No repositories found for @{username}</div>
           ) : (
             repos.map(repo => (

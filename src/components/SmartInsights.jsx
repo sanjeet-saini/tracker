@@ -54,7 +54,7 @@ export default function SmartInsights({ totalSeconds, tasks, skills }) {
           <div className="p-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-lg">
             <Sparkles className="w-5 h-5" />
           </div>
-          <h3 className="font-semibold text-slate-800 dark:text-slate-100">Smart Insights & AI Coach</h3>
+          <h3 className="font-semibold text-slate-800 dark:text-slate-100">Smart Insights &amp; Tips</h3>
         </div>
 
         <div className="space-y-3">
